@@ -12,6 +12,8 @@ var accel = new THREE.Vector3(0, 0, 0);
 var planeSpeed = 10;
 var vecForRot = new THREE.Vector3(0, 0, 1);
 var test;
+airplane.useQuaternion = true;
+var axes = new THREE.AxisHelper();
 
 // Particle generation data
 var width = 20;
@@ -31,10 +33,10 @@ controls = new THREE.OrbitControls( camera );
 // starting the renderer
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-// axes for rotating plane
-var xAxis = new THREE.Vector3(1,0,0),
-	yAxis = new THREE.Vector3(0,1,0),
-	zAxis = new THREE.Vector3(0,0,1);
+// Vectors/quaternion to rotate plane
+var _q1 = new THREE.Quaternion();
+var axisX = new THREE.Vector3( 1, 0, 0 );
+var axisZ = new THREE.Vector3( 0, 0, 1 );
 	
 // Textures
 var textureBody = THREE.ImageUtils.loadTexture('textures/texture1.png');
@@ -107,9 +109,11 @@ plane.add(leftWing);
 plane.add(rightWing);
 plane.add(engine);
 plane.rotation.x = -1.57;
+plane.matrixAutoUpdate = false;
+plane.add( axes );
 scene.add(plane);
 
-// Create an object for the camera, so you can rotate it on world axes
+// Create an object for the camera, so you can transform it on world axes
 var camObject = new THREE.Object3D();
 camObject.add(camera);
 scene.add(camObject);
@@ -131,42 +135,42 @@ onkeydown = onkeyup = function(e){
 	
 
 // Rotate an object around an arbitrary axis in object space
-// Function by Cory Gross on StackOverflow
-var rotObjectMatrix;
-var rotateAroundObjectAxis = function(object, axis, radians) {
-	rotObjectMatrix = new THREE.Matrix4();
-	rotObjectMatrix.makeRotationAxis(axis.normalize(), radians);
+function rotateOnAxis( object, axis, angle ) { // CHANGED
+    
+    _q1.setFromAxisAngle( axis, angle );
+    object.quaternion.multiplySelf( _q1 );
 
-	object.matrix.multiply(rotObjectMatrix);
-
-	object.rotation.setFromRotationMatrix(object.matrix);
-}
+} 
 
 // The plane's controls
 var checkPlaneControls = function() {
+	if(map[79]) {
+		// O
+		// nothing here for now
+	}
 	if(map[87]) {
 		// W
-		rotateAroundObjectAxis(plane, xAxis, -pitchSpeed * Math.PI / 180);
+		rotateOnAxis(plane, xAxis, -pitchSpeed * Math.PI / 180);
 	}
 	if(map[83]) {
 		// S
-		rotateAroundObjectAxis(plane, xAxis, pitchSpeed * Math.PI / 180);
+		rotateOnAxis(plane, xAxis, pitchSpeed * Math.PI / 180);
 	}
 	if(map[81]){
 		// Q
-		rotateAroundObjectAxis(plane, yAxis, -rollSpeed * Math.PI / 180);
+		rotateOnAxis(plane, yAxis, -rollSpeed * Math.PI / 180);
 	}
 	if(map[69]){
 		// E
-		rotateAroundObjectAxis(plane, yAxis, rollSpeed * Math.PI / 180);
+		rotateOnAxis(plane, yAxis, rollSpeed * Math.PI / 180);
 	}
 	if(map[65]){
 		// A
-		rotateAroundObjectAxis(plane, zAxis, yawSpeed * Math.PI / 180);
+		rotateOnAxis(plane, zAxis, yawSpeed * Math.PI / 180);
 	}
 	if(map[68]){
 		// D
-		rotateAroundObjectAxis(plane, zAxis, -yawSpeed * Math.PI / 180);
+		rotateOnAxis(plane, zAxis, -yawSpeed * Math.PI / 180);
 	}
 }
 
